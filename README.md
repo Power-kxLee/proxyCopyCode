@@ -316,7 +316,7 @@ return target
 最终还需要封装成函数对外调用
 
 源码地址:(配合源码食用更合适)
-[proxyCopyCode](https://github.com/Power-kxLee/proxyCopyCode)
+[https://github.com/Power-kxLee/proxyCopyCode](https://github.com/Power-kxLee/proxyCopyCode)
 
 ## 总结
 * 这是我见过最高性能的深拷贝, 只对变化的这一部分进行操作
