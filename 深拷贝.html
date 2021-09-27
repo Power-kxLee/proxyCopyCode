@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>深拷贝</title>
+</head>
+
+<body>
+  <script>
+    const people = {
+      man: {
+        name: 'lee',
+        body: {
+          foot: {
+            state: 'good'
+          },
+          hand: {
+            state: 'good'
+          }
+        }
+      },
+      friend: ['jw', 'gg', 'gw']
+    }
+    const copyMap = new Map()
+    const proxyMap = new Map()
+
+    const _handle = {
+      get(target, prop) {
+        console.log('get捕捉器', target, prop)
+        const _data = copyMap.get(target) || target
+        const _proxy = setProxy(_data[prop])
+        return _proxy
+      },
+      set(target, prop, value) {
+        console.log('set捕捉器', target, prop, value)
+        let _copy
+        if (copyMap.has(target)) {
+          _copy = copyMap.get(target)
+        } else {
+          _copy = Array.isArray(target) ? target.slice() : { ...target } // 复制数据
+        }
+        _copy[prop] = value
+        copyMap.set(target, _copy)
+        console.log(copyMap)
+        return true
+      }
+    }
+    // 把转换成proxy的复用 写成一个函数去处理
+    const setProxy = (target) => {
+      // 检测是不是普通对象 或者 是数组
+      if (Object.prototype.toString.call(target) === '[object Object]' || Array.isArray(target)) {
+        if (proxyMap.has(target)) {
+          return proxyMap.get(target)
+        }
+        const _proxy = new Proxy(target, _handle)
+        proxyMap.set(target, _proxy)
+        return _proxy
+      }
+      return target
+    }
+    const _handleMap = (target) => {
+      // 只处理普通对象 和 数组  因为是递归循环 最后肯定会获得单个数值的 所以就直接只处理对象或者数组就可以了
+      if (Object.prototype.toString.call(target) === '[object Object]' || Array.isArray(target)) {
+        if (!(proxyMap.has(target) || copyMap.has(target))) {
+          return target
+        }
+        let _copy
+        const copy = Array.isArray(target) ? target.slice() : { ...target } // 复制数据
+        // 这里处理copy的缓存
+        if (copyMap.has(target)) {
+          _copy = copyMap.get(target)
+        } else {
+          copyMap.set(target, copy)
+        }
+
+        const _co = copyMap.get(target)
+        // **这里是重点
+        // 递归循环对象的每一个键值 然后在copyMap里取出来 赋值回去
+        // 这里就可以做到深拷贝拉
+        Object.keys(_co).forEach((item) => {
+          _co[item] = _handleMap(_co[item])
+        })
+        return _co
+      }
+      // 其他类型就直接返回 比如字符串 函数 数值什么的
+      return target
+    }
+    let _py = setProxy(people)
+    _py.man.name = 'xiaoMing'
+    _handleMap(people)
+
+    p = copyMap.get(people)
+    console.log(p)
+  </script>
+</body>
+
+</html>

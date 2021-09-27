@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>浅拷贝</title>
+</head>
+
+<body>
+  <script>
+    const people = {
+      man: {
+        name: 'lee',
+        body: {
+          foot: {
+            state: 'good'
+          },
+          hand: {
+            state: 'good'
+          }
+        }
+      },
+      friend: ['jw', 'gg', 'gw']
+    }
+
+    const IMMER = Symbol('cope') // 定义一个常量
+    const copyMap = new Map()
+    const proxyMap = new Map()
+    const _handle = {
+      get(target, prop) {
+        console.log('get')
+      },
+      set(target, prop, value) {
+        let _copy
+        if (copyMap.has(target)) {
+          _copy = copyMap.get(target)
+        } else {
+          _copy = Array.isArray(target) ? target.slice() : { ...target } // 复制数据
+        }
+        _copy[prop] = value
+        // 保存每一段修改后的数据
+        copyMap.set(target, _copy)
+        return true
+      }
+    }
+
+    let _py = new Proxy(people, _handle)
+    console.log(_py.man)
+    _py.friend = ['jw']
+    let p = copyMap.get(people)
+    console.log(p)
+    console.log(people)
+  </script>
+</body>
+
+</html>
